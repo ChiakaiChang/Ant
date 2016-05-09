@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- WARNING: Eclipse auto-generated file.
+              Any modifications will be overwritten.
+              To include a user specific buildfile here, simply create one in the same
+              directory with the processing instruction <?eclipse.ant.import?>
+              as the first entry and export the buildfile again. -->
+
+	<project name="Ant" default="war" basedir=".">
+
+		<property name="project-name" value="${ant.project.name}" />
+		<property name="builder" value="Chiakai" />
+		<property name="war-file-name" value="${project-name}.war" />
+		<property name="build-directory" value="build" />
+		<property name="source-directory" value="build/classes" />
+		<property name="src" value="src" />
+		<property name="web-directory" value="WebContent" />
+		<property name="web-xml-file" value="WebContent/WEB-INF/web.xml" />
+		<property name="lib.dir" value="WebContent/WEB-INF/lib" />
+		<property name="report.dir" value="report" />
+		
+		<tstamp prefix="build-info">
+			<format property="current-date" pattern="d-MMMM-yyyy" locale="en" />
+			<format property="current-time" pattern="hh:mm:ss a z" locale="en" />
+		</tstamp>
+
+		<target name="init">
+			<delete dir="${build-directory}/classes" />
+			<delete dir="${build-directory}/${report.dir}"/>
+			<delete file="${build-directory}/${war-file-name}" />
+			<mkdir dir="${build-directory}/classes"/>
+			<mkdir dir="${build-directory}/${report.dir}"/>
+		</target>
+		
+		<target name="compile" depends="init" description="compile the source ">
+		    <javac srcdir="${src}" destdir="${source-directory}" includeantruntime="true" nowarn="yes" debug="true">
+	    		<classpath>
+	    			<fileset dir="${lib.dir}">
+			    	    <include name="**/*.jar"/>
+			    	</fileset>
+	    		</classpath>
+		    </javac>
+		</target>
+
+		<target name="junit" depends="compile">
+			<junit printsummary="yes">
+				<formatter type="xml"/>
+				<classpath>
+					<fileset dir="${lib.dir}">
+			    	    <include name="**/*.jar"/>
+			    	</fileset>
+					<pathelement location="${source-directory}" />
+	    		</classpath> 
+			    <batchtest todir="${build-directory}/${report.dir}">
+			       <fileset dir="${source-directory}">
+			            <include name="**/*Test*" />
+			       </fileset>
+			    </batchtest>
+			</junit>
+			
+		</target>
+		
+		<target name="junitReport" depends="junit">
+			<junitreport todir="${build-directory}/${report.dir}"> 
+	            <fileset dir="${build-directory}/${report.dir}"> 
+	                <include name="TEST-*.xml"/> 
+	            </fileset> 
+	            <report format="frames" todir="${build-directory}/${report.dir}/html"/> 
+	        </junitreport> 
+		</target>
+			
+		<target name="war" depends="junitReport">
+			<war warfile="${build-directory}/${war-file-name}" webxml="${web-xml-file}">
+				<classes dir="${source-directory}" />
+				<fileset dir="${web-directory}">
+					<!-- Need to exclude it since webxml is an attribute of the war tag above -->
+					<exclude name="WEB-INF/web.xml" />
+				</fileset>
+				<manifest>
+					<attribute name="Built-By" value="${builder}" />
+					<attribute name="Built-On" value="${build-info.current-date}" />
+					<attribute name="Built-At" value="${build-info.current-time}" />
+				</manifest>
+			</war>
+		</target>
+
+	</project>
